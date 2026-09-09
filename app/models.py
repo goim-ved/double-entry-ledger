@@ -19,3 +19,16 @@ class Wallet(Base):
 
     entries = relationship("LedgerEntry", back_populates="wallet")
 
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    transaction_id = Column(String(64), unique=True, index=True, nullable=True)
+    idempotency_key = Column(String(128), unique=True, index=True, nullable=True)
+    transaction_type = Column(String(32), nullable=True)
+    amount = Column(Numeric(precision=18, scale=2), nullable=False)
+    currency = Column(String(3), default="INR", nullable=False)
+    status = Column(String(32), default="COMPLETED", nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+    entries = relationship("LedgerEntry", back_populates="transactions", cascade="all, delete-orphan")
