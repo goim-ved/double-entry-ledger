@@ -29,6 +29,25 @@ class Transaction(Base):
     amount = Column(Numeric(precision=18, scale=2), nullable=False)
     currency = Column(String(3), default="INR", nullable=False)
     status = Column(String(32), default="COMPLETED", nullable=False)
-    created_at = Column(DateTime, default=utc_now, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False) 
+    #utc_now and not utc_now() because we SQLAlchemy to call the function
 
     entries = relationship("LedgerEntry", back_populates="transactions", cascade="all, delete-orphan")
+
+class LedgerEntry(Base):
+    __tablename__ = "ledger_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    transaction_id = Column(Integer, ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True)
+    wallet_id = Column(Integer, ForeignKey("wallets.id", ondelete="RESTRICT"), nullable=False, index=True)
+    entry_type = Column(String(16), nullable=False)
+    amount = Column(Numeric(precision=18, scale=2), nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+    transaction = relationship("Transaction", back_populates="entries")
+    wallet = relationship("Wallet", back_populates="entries")
+
+
+    __table_args__ = (
+        Index("idx_ledger_wallet_created", "wallet_id", "created_at")
+    )
